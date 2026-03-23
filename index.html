@@ -1,1 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Belmont Law AI Vault</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Crimson+Pro:wght@400;600;700&family=JetBrains+Mono&display=swap" rel="stylesheet">
 
+    <style>
+        /* NOTATION: COLOR THEMES & CSS VARIABLES */
+        :root {
+            --bg: #0b0d11; --sidebar: #111318; --surface: #161921; --border: #252830;
+            --text-primary: #ede9dc; --text-secondary: #9ca3af; --accent: #f5a623;
+        }
+        body.theme-cream {
+            --bg: #fdfaf1; --sidebar: #f4eee0; --surface: #fffcf5; --border: #e6e0d0;
+            --text-primary: #433d35; --text-secondary: #7a7369; --accent: #d97706;
+        }
+
+        body { 
+            background-color: var(--bg); color: var(--text-primary); 
+            font-family: 'ui-sans-serif', system-ui, sans-serif;
+            transition: background-color 0.3s ease, color 0.3s ease; 
+        }
+        .serif-title { font-family: 'Crimson Pro', serif; }
+        
+        /* NOTATION: PROMPT CARD STYLING (Screenshot Style) */
+        .prompt-preview {
+            background-color: #0b0d11; border: 1px solid #252830;
+            border-radius: 10px; font-family: 'JetBrains Mono', monospace;
+            color: #c8d3e0; padding: 1rem; position: relative;
+        }
+    </style>
+</head>
+<body class="flex h-screen overflow-hidden">
+
+    <aside class="w-64 bg-[var(--sidebar)] border-r border-[var(--border)] flex flex-col shrink-0 transition-colors">
+        <div class="p-6 border-b border-[var(--border)]">
+            <h1 class="serif-title text-2xl font-bold text-[var(--accent)]">Law AI Vault</h1>
+            <p class="text-[10px] text-[var(--text-secondary)] uppercase tracking-widest mt-1">Belmont Law Resource</p>
+        </div>
+
+        <div class="px-6 py-4 border-b border-[var(--border)] flex items-center gap-3">
+            <span class="text-[10px] text-[var(--text-secondary)] uppercase font-bold">Theme:</span>
+            <button onclick="setTheme('dark')" class="w-5 h-5 rounded-full bg-[#161921] border border-gray-600 hover:scale-110 transition shadow-sm"></button>
+            <button onclick="setTheme('cream')" class="w-5 h-5 rounded-full bg-[#f4eee0] border border-gray-400 hover:scale-110 transition shadow-sm"></button>
+        </div>
+        
+        <nav class="flex-1 mt-4 px-2 space-y-1 overflow-y-auto">
+            <button onclick="filterCat('all')" id="btn-all" class="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium hover:bg-white/5 transition">
+                <i data-lucide="layout-grid" class="w-4 h-4"></i> All Resources
+            </button>
+            <button onclick="filterCat('prompt')" id="btn-prompt" class="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium hover:bg-white/5 transition">
+                <i data-lucide="terminal" class="w-4 h-4 text-orange-400"></i> Prompts
+            </button>
+            <button onclick="filterCat('tip')" id="btn-tip" class="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium hover:bg-white/5 transition">
+                <i data-lucide="lightbulb" class="w-4 h-4 text-yellow-400"></i> Workflow Tips
+            </button>
+        </nav>
+
+        <div class="p-4 border-t border-[var(--border)]">
+            <button onclick="showModal()" class="w-full bg-[var(--accent)] text-black font-bold py-2.5 rounded-lg flex items-center justify-center gap-2 hover:opacity-90 transition shadow-md">
+                <i data-lucide="plus-circle" class="w-4 h-4"></i> Add Shared Entry
+            </button>
+        </div>
+    </aside>
+
+    <main class="flex-1 flex flex-col overflow-hidden">
+        <header class="bg-[var(--surface)] border-b border-[var(--border)] px-8 py-4 flex justify-between items-center transition-colors">
+            <div class="relative w-96">
+                <i data-lucide="search" class="absolute left-3 top-2.5 text-[var(--text-secondary)] w-4 h-4"></i>
+                <input type="text" id="searchInput" onkeyup="searchVault()" placeholder="Search library..." 
+                       class="w-full pl-10 pr-4 py-2 bg-[var(--bg)] border border-[var(--border)] rounded-full text-sm focus:ring-1 focus:ring-[var(--accent)] outline-none text-[var(--text-primary)] transition">
+            </div>
+            <div id="status" class="text-[10px] font-bold uppercase tracking-widest flex items-center gap-2 text-gray-400">
+                <span id="status-dot" class="h-2 w-2 bg-gray-400 rounded-full transition-colors"></span> 
+                <span id="status-text">Connecting...</span>
+            </div>
+        </header>
+
+        <div id="vaultGrid" class="flex-1 overflow-y-auto p-8 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 align-start content-start">
+            </div>
+    </main>
+
+    <div id="addModal" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="bg-[var(--surface)] border border-[var(--border)] rounded-2xl w-full max-w-lg shadow-2xl overflow-hidden p-6">
+            <div class="flex justify-between items-center mb-6">
+                <h2 id="modalTitle" class="serif-title text-xl font-bold">New Vault Entry</h2>
+                <button onclick="closeModal()" class="text-[var(--text-secondary)] hover:text-[var(--text-primary)] text-2xl">&times;</button>
+            </div>
+            <div class="space-y-4">
+                <input type="hidden" id="editId">
+                <input type="text" id="newTitle" placeholder="Title" class="w-full p-3 bg-[var(--bg)] border border-[var(--border)] rounded-xl outline-none text-[var(--text-primary)]">
+                <select id="newCat" class="w-full p-3 bg-[var(--bg)] border border-[var(--border)] rounded-xl text-[var(--text-primary)]">
+                    <option value="prompt">Prompt Template</option>
+                    <option value="tip">Workflow Tip</option>
+                </select>
+                <textarea id="newContent" placeholder="Paste full content here..." class="w-full p-3 bg-[var(--bg)] border border-[var(--border)] rounded-xl h-40 outline-none text-[var(--text-primary)] font-mono text-xs"></textarea>
+                <button onclick="handleSaveClick()" id="saveBtn" class="w-full bg-[var(--accent)] text-black font-bold py-3 rounded-xl hover:opacity-90 transition">Sync to Shared Library</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const DB_URL = "https://script.google.com/macros/s/AKfycbxKbUjO1mm5S31jVgtMYFt6-K5lDmOqB9trccmwhaOEtpBU3Cf1Re_hHA09RVkIczdC/exec"; // REPLACE WITH YOUR URL
+        let masterData = [];
+
+        // LOAD DATA
+        async function loadData() {
+            try {
+                const res = await fetch(DB_URL);
+                masterData = await res.json();
+                render(masterData);
+                document.getElementById('status-dot').className = "h-2 w-2 bg-green-500 rounded-full animate-pulse";
+                document.getElementById('status-text').innerText = "Database Online";
+                document.getElementById('status-text').className = "text-green-500";
+            } catch (err) {
+                document.getElementById('status-dot').className = "h-2 w-2 bg-red-500 rounded-full";
+                document.getElementById('status-text').innerText = "Offline";
+            }
+        }
+
+        // RENDER CARDS (With Edit/Delete Management)
+        function render(data) {
+            const grid = document.getElementById('vaultGrid');
+            grid.innerHTML = data.map(e => `
+                <div class="bg-[var(--surface)] border border-[var(--border)] p-6 rounded-xl flex flex-col gap-4 shadow-sm transition hover:border-[var(--accent)]">
+                    <div class="flex justify-between items-start">
+                        <span class="text-[9px] font-bold uppercase tracking-widest px-2 py-1 rounded bg-amber-500/10 text-amber-500 border border-amber-500/30">
+                            ${e.category}
+                        </span>
+                        <div class="flex gap-2">
+                            <button onclick="prepareEdit(${e.id})" class="text-[var(--text-secondary)] hover:text-blue-400 text-[10px] font-bold">Edit</button>
+                            <button onclick="deleteItem(${e.id})" class="text-[var(--text-secondary)] hover:text-red-400 text-[10px] font-bold">Delete</button>
+                        </div>
+                    </div>
+                    <h3 class="serif-title text-lg font-bold leading-tight">${e.title}</h3>
+                    <div class="prompt-preview group">
+                        <div class="text-[11px] leading-relaxed overflow-hidden whitespace-pre-wrap">${e.content.substring(0, 150)}${e.content.length > 150 ? '...' : ''}</div>
+                        <button onclick="copyToClipboard(\`${e.content}\`)" class="absolute top-2 right-2 bg-slate-800 text-white text-[9px] px-2 py-1 rounded border border-slate-700 font-bold hover:bg-amber-500 transition opacity-80 group-hover:opacity-100">Copy</button>
+                    </div>
+                </div>
+            `).join('');
+            lucide.createIcons();
+        }
+
+        // SAVE & SYNC (Handles New and Edits)
+        async function handleSaveClick() {
+            const btn = document.getElementById('saveBtn');
+            const entry = {
+                id: document.getElementById('editId').value || Date.now(),
+                title: document.getElementById('newTitle').value,
+                category: document.getElementById('newCat').value,
+                content: document.getElementById('newContent').value,
+                desc: "Management Update"
+            };
+
+            if (!entry.title || !entry.content) return alert("Please fill Title and Content.");
+            btn.disabled = true; btn.innerHTML = "Syncing...";
+
+            try {
+                await fetch(DB_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(entry), headers: { 'Content-Type': 'text/plain' } });
+                alert("Shared Library Updated!"); location.reload();
+            } catch (err) { alert("Network error."); btn.disabled = false; }
+        }
+
+        // MANAGEMENT HELPERS
+        function prepareEdit(id) {
+            const item = masterData.find(e => e.id == id);
+            document.getElementById('modalTitle').innerText = "Edit Entry";
+            document.getElementById('editId').value = item.id;
+            document.getElementById('newTitle').value = item.title;
+            document.getElementById('newCat').value = item.category;
+            document.getElementById('newContent').value = item.content;
+            showModal();
+        }
+
+        function setTheme(m) { m === 'cream' ? document.body.classList.add('theme-cream') : document.body.classList.remove('theme-cream'); }
+        function showModal() { document.getElementById('addModal').classList.remove('hidden'); }
+        function closeModal() { document.getElementById('addModal').classList.add('hidden'); document.getElementById('editId').value = ""; document.getElementById('modalTitle').innerText = "New Vault Entry"; }
+        function copyToClipboard(t) { navigator.clipboard.writeText(t); alert("Copied!"); }
+        function searchVault() {
+            const q = document.getElementById('searchInput').value.toLowerCase();
+            render(masterData.filter(e => e.title.toLowerCase().includes(q) || e.content.toLowerCase().includes(q)));
+        }
+        loadData();
+    </script>
+</body>
+</html>
