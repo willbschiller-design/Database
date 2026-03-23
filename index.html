@@ -1,48 +1,61 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Your App</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Belmont Law AI Vault</title>
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <div id="modal">
-        <form id="entryForm">
-            <label for="category">Category:</label>
-            <select id="category">
-                <!-- Category options here -->
-            </select>
-            <label for="description">Description:</label>
-            <textarea id="description" placeholder="Enter a description..."></textarea>
-            <label for="content">Content:</label>
-            <textarea id="content" placeholder="Enter your content..."></textarea>
-            <button type="button" onclick="handleSaveClick()">Save</button>
-        </form>
+    <header>
+        <h1>Belmont Law AI Vault</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">About</a></li>
+            </ul>
+        </nav>
+    </header>
+    <aside>
+        <h2>Categories</h2>
+        <ul>
+            <li><a href="#">Category 1</a></li>
+            <li><a href="#">Category 2</a></li>
+        </ul>
+    </aside>
+    <main>
+        <div class="grid">
+            <div class="card">
+                <h3>Title 1</h3>
+                <p class="description">Description for Title 1.</p>
+                <textarea placeholder="Content..." rows="4"></textarea>
+            </div>
+            <div class="card">
+                <h3>Title 2</h3>
+                <p class="description">Description for Title 2.</p>
+                <textarea placeholder="Content..." rows="4"></textarea>
+            </div>
+        </div>
+        <button onclick="openModal()">Add New</button>
+    </main>
+    <div id="modal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal()">&times;</span>
+            <h2>Add New Item</h2>
+            <form>
+                <label for="category">Category:</label>
+                <select id="category">
+                    <option value="cat1">Category 1</option>
+                    <option value="cat2">Category 2</option>
+                </select>
+                <label for="description">Description:</label>
+                <input type="text" id="description" placeholder="Description">
+                <label for="content">Content:</label>
+                <textarea id="content" rows="4"></textarea>
+                <button type="submit">Submit</button>
+            </form>
+        </div>
     </div>
-
-    <div id="entries">
-        <!-- Entries will be rendered here -->
-    </div>
-
-    <script>
-        function renderEntries(entries) {
-            const container = document.getElementById('entries');
-            container.innerHTML = '';
-            entries.forEach(entry => {
-                const card = document.createElement('div');
-                card.innerHTML = `<h3>${entry.title}</h3><p>${entry.description}</p>`;
-                container.appendChild(card);
-            });
-        }
-
-        function handleSaveClick() {
-            const description = document.getElementById('description').value;
-            // Capture the description along with other fields when saving
-            // Your save logic here
-        }
-
-        function prepareEdit(entry) {
-            document.getElementById('description').value = entry.description;
-            // Populate other fields for editing
-        }
-    </script>
+    <script src="script.js"></script>
 </body>
 </html>
